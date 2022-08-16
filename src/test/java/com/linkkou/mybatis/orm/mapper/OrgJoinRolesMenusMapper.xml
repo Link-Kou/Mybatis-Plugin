@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.linkkou.mybatis.orm.dao.OrgJoinRolesMenusDao">
+
+    <resultMap type="com.linkkou.mybatis.orm.domain.OrgJoinRolesMenusDomain" id="OrgJoinRolesMenusMap">
+        <result property="fRows" column="f_rows" jdbcType="INTEGER"/>
+        <result property="fId" column="f_id" jdbcType="VARCHAR"/>
+        <result property="fRolesId" column="f_roles_id" jdbcType="VARCHAR"/>
+        <result property="fMenusId" column="f_menus_id" jdbcType="VARCHAR"/>
+        <result property="fMenusId" column="f_menus_id" jdbcType="VARCHAR"/>
+        <result property="createtime" column="createtime" jdbcType="TIMESTAMP"/>
+        <result property="updatedtime" column="updatedtime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="OrgJoinRolesMenusMap">
+        select
+        COALESCE( sum(substring('trade_way'::jsonb -> 0 ->> 1,'(-?([0-9]*)(.[0-9]+)?)')::NUMERIC ),0) as amount,
+        f_rows, f_id, f_roles_id, f_menus_id, f_check, is_deleted, createtime, updatedtime
+        from t_org_join_roles_menus
+        <where>
+            <if test="fId != null">
+                and f_id = #{fId}
+            </if>
+        </where>
+    </select>
+
+    <!--查询单个-->
+    <select id="queryForId" resultMap="OrgJoinRolesMenusMap">
+        select
+        f_rows, f_id, f_roles_id, f_menus_id, f_check, is_deleted, createtime, updatedtime
+        from t_org_join_roles_menus
+        <where>
+            f_rows = ${sd} and
+            f_id in
+            <foreach collection="list" item="id" index="index" open="(" close=")" separator=",">
+                <if test="id != null and id != ''">
+                    #{id}
+                </if>
+            </foreach>
+        </where>
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="OrgJoinRolesMenusMap">
+        select f_rows,
+               f_id,
+               f_roles_id,
+               f_menus_id,
+               f_check,
+               is_deleted,
+               createtime,
+               updatedtime
+        from t_org_join_roles_menus
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="OrgJoinRolesMenusMap">
+        select
+        f_rows, f_id, f_roles_id, f_menus_id, f_check, is_deleted, createtime, updatedtime
+        from t_org_join_roles_menus
+        <where>
+            <if test="fRows != null">
+                and f_rows = #{fRows}
+            </if>
+            <if test="fId != null and fId != ''">
+                and f_id = #{fId}
+            </if>
+            <if test="fRolesId != null and fRolesId != ''">
+                and f_roles_id = #{fRolesId}
+            </if>
+            <if test="fMenusId != null and fMenusId != ''">
+                and f_menus_id = #{fMenusId}
+            </if>
+            <if test="createtime != null">
+                and createtime = #{createtime}
+            </if>
+            <if test="updatedtime != null">
+                and updatedtime = #{updatedtime}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="fRows" useGeneratedKeys="true">
+        insert into t_org_join_roles_menus(f_id, f_roles_id, f_menus_id)
+        values (#{fId}, #{fRolesId}, #{fMenusId})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update t_org_join_roles_menus
+        <set>
+            <if test="fId != null and fId != ''">
+                f_id = #{fId},
+            </if>
+            <if test="fRolesId != null and fRolesId != ''">
+                f_roles_id = #{fRolesId},
+            </if>
+            <if test="fMenusId != null and fMenusId != ''">
+                f_menus_id = #{fMenusId},
+            </if>
+            <if test="createtime != null">
+                createtime = #{createtime},
+            </if>
+            <if test="updatedtime != null">
+                updatedtime = #{updatedtime},
+            </if>
+        </set>
+        where f_rows = #{fRows}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from t_org_join_roles_menus
+        where f_id = #{fId}
+    </delete>
+
+    <!--通过主键删除-->
+    <delete id="deleteByRoleId">
+        delete
+        from t_org_join_roles_menus
+        where f_roles_id = #{fRolesId}
+    </delete>
+
+</mapper>
