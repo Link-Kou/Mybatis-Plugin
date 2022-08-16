@@ -7,7 +7,7 @@
     <version>1.0.0</version>
     <name>Plugin-Mybatis-${project.version}</name>
     <url>https://github.com/Link-Kou/Mybatis-Plugin</url>
-    <description>Mybatis-Log</description>
+    <description>Mybatis-plugin</description>
     <licenses>
         <license>
             <name>MIT License</name>
@@ -74,47 +74,53 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+
         <!--元组-->
         <dependency>
             <groupId>org.javatuples</groupId>
             <artifactId>javatuples</artifactId>
             <version>${javatuples.version}</version>
         </dependency>
-
         <!-- mybatis 数据库操作 -->
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
             <version>${mybatis.version}</version>
         </dependency>
-
         <!-- slf4j通用日志桥接 -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${org.slf4j.version}</version>
         </dependency>
+
+
+
         <!-- Log4j2 -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-jcl</artifactId>
             <version>${org.log4j.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
             <version>${org.log4j.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>${org.log4j.version}</version>
+            <scope>test</scope>
         </dependency>
         <!-- 桥接：告诉Slf4j使用Log4j2 -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>${org.log4j.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <!--lombok-->
@@ -142,6 +148,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>${springboot.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -207,6 +214,15 @@
                     <!--<compilerArgument>-proc:none</compilerArgument>-->
                 </configuration>
             </plugin>
+            <!--发布-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.0.0-M1</version>
+                <configuration>
+                    <deployAtEnd>true</deployAtEnd>
+                </configuration>
+            </plugin>
             <!-- 打包JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -250,7 +266,7 @@
                     <charset>UTF-8</charset>
                     <encoding>UTF-8</encoding>
                     <docencoding>UTF-8</docencoding>
-                    <javadocExecutable>/Library/Java/JavaVirtualMachines/jdk1.8.0_172.jdk/Contents/Home/bin/javadoc</javadocExecutable>
+                    <javadocExecutable>/Library/Java/JavaVirtualMachines/jdk1.8.0_271.jdk/Contents/Home/bin/javadoc</javadocExecutable>
                 </configuration>
                 <executions>
                     <execution>
@@ -265,7 +281,7 @@
                 </executions>
             </plugin>
             <!--IDEA 上传打开 签名-->
-            <!--<plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <executions>
@@ -277,7 +293,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>-->
+            </plugin>
         </plugins>
 
         <!--解决XML资源文件在代码目录下编译的时候不拷贝问题-->
@@ -305,5 +321,17 @@
         </testResources>
 
     </build>
+    <distributionManagement>
+        <repository>
+            <id>oss-sonatype</id>
+            <name>Nexus Release Repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+        <snapshotRepository>
+            <id>oss-sonatype</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>
