@@ -1,5 +1,6 @@
 package com.linkkou.mybatis.log;
 
+import javassist.*;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
@@ -8,6 +9,7 @@ import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.reflection.MetaObject;
+import org.apache.ibatis.scripting.defaults.RawSqlSource;
 import org.apache.ibatis.scripting.xmltags.DynamicContext;
 import org.apache.ibatis.scripting.xmltags.DynamicSqlSource;
 import org.apache.ibatis.scripting.xmltags.SqlNode;
@@ -31,13 +33,32 @@ import java.util.Properties;
  *
  * @author lk
  */
-@Intercepts({
-        @Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class}),
-        @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}),
-        @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}),
-        @Signature(type = Executor.class, method = "queryCursor", args = {MappedStatement.class, Object.class, RowBounds.class})
-})
+@Intercepts({@Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class}), @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}), @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}), @Signature(type = Executor.class, method = "queryCursor", args = {MappedStatement.class, Object.class, RowBounds.class})})
 public class LogInterceptor implements Interceptor {
+
+    static {
+        ClassPool classPool = ClassPool.getDefault();
+        CtClass ctClass = null;
+        try {
+            //获取类
+            ctClass = classPool.get("org.apache.ibatis.scripting.defaults.RawSqlSource");
+            //添加新的字段
+            CtField ctField = new CtField(classPool.getCtClass("java.lang.String"), "_rootSqlNode_", ctClass);
+            ctField.setModifiers(Modifier.PUBLIC);
+            ctField.setModifiers(Modifier.FINAL);
+            ctClass.addField(ctField);
+            //获取构造
+            final CtConstructor declaredConstructor = ctClass.getDeclaredConstructor(new CtClass[]{classPool.getCtClass("org.apache.ibatis.session.Configuration"), classPool.getCtClass("java.lang.String"), classPool.getCtClass("java.lang.Class")});
+            declaredConstructor.insertAfter("{$0._rootSqlNode_ = $2;}");
+            //写入
+            ctClass.writeFile();
+            //加载该类的字节码（不能少）
+            ctClass.toClass(LogInterceptor.class.getClassLoader(), LogInterceptor.class.getProtectionDomain());
+            ctClass.detach();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogInterceptor.class);
 
@@ -45,6 +66,7 @@ public class LogInterceptor implements Interceptor {
      * 对象名称
      */
     private static final String ROOTSQLNODE = "rootSqlNode";
+    private static final String ROOTSQLNODE2 = "_rootSqlNode_";
     /**
      * 参数数量
      */
@@ -61,10 +83,8 @@ public class LogInterceptor implements Interceptor {
             final Pair<MappedStatement, Object> args = getArgs(invocation);
             MappedStatement mappedStatement = args.getValue0();
             Object parameter = args.getValue1();
-            final DynamicContext dynamicContext = new DynamicContext(mappedStatement.getConfiguration(), parameter);
-            final SqlNode sqlNode = getSqlNode(mappedStatement.getSqlSource());
-            if (sqlNode != null && sqlNode.apply(dynamicContext)) {
-                final String originalSql = dynamicContext.getSql();
+            final String originalSql = this.getOriginalSql(mappedStatement, parameter);
+            if (originalSql != null) {
                 BoundSql boundSql = mappedStatement.getBoundSql(parameter);
                 Configuration configuration = mappedStatement.getConfiguration();
                 // 通过配置信息和BoundSql对象来生成带值得sql语句
@@ -86,7 +106,7 @@ public class LogInterceptor implements Interceptor {
      * @param originalSql   sql
      * @return String
      */
-    public static String getCompleteSql(Configuration configuration, BoundSql boundSql, String originalSql) {
+    private String getCompleteSql(Configuration configuration, BoundSql boundSql, String originalSql) {
         Object parameterObject = boundSql.getParameterObject();
         List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
         if (parameterMappings.size() > 0 && parameterObject != null) {
@@ -105,6 +125,44 @@ public class LogInterceptor implements Interceptor {
         return originalSql.replaceAll("[\\s]+", " ");
     }
 
+
+    private String getOriginalSql(MappedStatement mappedStatement, Object parameter) {
+        final SqlSource sqlSource = mappedStatement.getSqlSource();
+        if (sqlSource instanceof DynamicSqlSource) {
+            return getDynamicSqlSource(mappedStatement, parameter);
+        }
+        if (sqlSource instanceof RawSqlSource) {
+            return getRawSqlSource(sqlSource);
+        }
+        return null;
+    }
+
+
+    private String getDynamicSqlSource(MappedStatement mappedStatement, Object parameter) {
+        final DynamicContext dynamicContext = new DynamicContext(mappedStatement.getConfiguration(), parameter);
+        final SqlNode sqlNode = getSqlNode(mappedStatement.getSqlSource());
+        if (sqlNode != null && sqlNode.apply(dynamicContext)) {
+            return dynamicContext.getSql();
+        }
+        return null;
+    }
+
+    private String getRawSqlSource(SqlSource sqlSource) {
+        final RawSqlSource dynamicSqlSource = (RawSqlSource) sqlSource;
+        Field[] declaredFields = dynamicSqlSource.getClass().getDeclaredFields();
+        for (Field declaredField : declaredFields) {
+            if (ROOTSQLNODE2.equals(declaredField.getName())) {
+                try {
+                    declaredField.setAccessible(true);
+                    return (String) declaredField.get(dynamicSqlSource);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return null;
+    }
+
     /**
      * 构建 SqlNode
      *
@@ -112,15 +170,17 @@ public class LogInterceptor implements Interceptor {
      * @return SqlNode
      */
     private SqlNode getSqlNode(SqlSource sqlSource) {
-        final DynamicSqlSource dynamicSqlSource = (DynamicSqlSource) sqlSource;
-        final Field[] declaredFields = dynamicSqlSource.getClass().getDeclaredFields();
-        for (Field declaredField : declaredFields) {
-            if (ROOTSQLNODE.equals(declaredField.getName())) {
-                try {
-                    declaredField.setAccessible(true);
-                    return (SqlNode) declaredField.get(dynamicSqlSource);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
+        if (sqlSource instanceof DynamicSqlSource) {
+            final DynamicSqlSource dynamicSqlSource = (DynamicSqlSource) sqlSource;
+            Field[] declaredFields = dynamicSqlSource.getClass().getDeclaredFields();
+            for (Field declaredField : declaredFields) {
+                if (ROOTSQLNODE.equals(declaredField.getName())) {
+                    try {
+                        declaredField.setAccessible(true);
+                        return (SqlNode) declaredField.get(dynamicSqlSource);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         }

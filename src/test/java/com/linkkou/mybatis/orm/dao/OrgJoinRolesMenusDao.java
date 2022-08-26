@@ -2,6 +2,7 @@ package com.linkkou.mybatis.orm.dao;
 
 import com.linkkou.mybatis.orm.domain.OrgJoinRolesMenusDomain;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,7 +23,8 @@ public interface OrgJoinRolesMenusDao {
      * @param fRows 主键
      * @return 实例对象
      */
-    OrgJoinRolesMenusDomain queryById(Integer fRows);
+    OrgJoinRolesMenusDomain queryById(@Param("fId") Integer fRows);
+
 
     OrgJoinRolesMenusDomain queryForId(@Param("sd") String sd, @Param("list") List<Integer> fRows);
 

@@ -7,13 +7,23 @@
         <result property="fId" column="f_id" jdbcType="VARCHAR"/>
         <result property="fRolesId" column="f_roles_id" jdbcType="VARCHAR"/>
         <result property="fMenusId" column="f_menus_id" jdbcType="VARCHAR"/>
-        <result property="fMenusId" column="f_menus_id" jdbcType="VARCHAR"/>
         <result property="createtime" column="createtime" jdbcType="TIMESTAMP"/>
         <result property="updatedtime" column="updatedtime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <!--查询单个-->
     <select id="queryById" resultMap="OrgJoinRolesMenusMap">
+        select
+        f_rows, f_id, f_roles_id, f_menus_id, f_check, is_deleted, createtime, updatedtime
+        from t_org_join_roles_menus
+        <where>
+            <if test="fId != null">
+                and f_id = #{fId}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryById2" resultMap="OrgJoinRolesMenusMap">
         select
         COALESCE( sum(substring('trade_way'::jsonb -> 0 ->> 1,'(-?([0-9]*)(.[0-9]+)?)')::NUMERIC ),0) as amount,
         f_rows, f_id, f_roles_id, f_menus_id, f_check, is_deleted, createtime, updatedtime
@@ -51,8 +61,7 @@
                is_deleted,
                createtime,
                updatedtime
-        from t_org_join_roles_menus
-        limit #{offset}, #{limit}
+        from t_org_join_roles_menus limit #{offset}, #{limit}
     </select>
 
     <!--通过实体作为筛选条件查询-->

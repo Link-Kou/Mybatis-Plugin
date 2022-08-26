@@ -55,10 +55,11 @@ public class EnableDataSourceImpl {
 
     @Bean(SQLSESSIONFACTORY_NAME)
     public SqlSessionFactory buildSqlSessionFactory(@Qualifier(DATASOURCE_NAME) DataSource dataSource) throws Exception {
+        final LogInterceptor logInterceptor = new LogInterceptor();
         SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
         sqlSessionFactoryBean.setDataSource(dataSource);
         sqlSessionFactoryBean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources(MAPPER_LOCATION));
-        sqlSessionFactoryBean.setPlugins(new LogInterceptor());
+        sqlSessionFactoryBean.setPlugins(logInterceptor);
         //sqlSessionFactoryBean.setTypeHandlers(new AutoGsonEnumTypeHandler());
         return sqlSessionFactoryBean.getObject();
     }
