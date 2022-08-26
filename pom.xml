@@ -4,7 +4,7 @@
     <groupId>com.github.link-kou</groupId>
     <artifactId>mybatis-plugin</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <name>Plugin-Mybatis-${project.version}</name>
     <url>https://github.com/Link-Kou/Mybatis-Plugin</url>
     <description>Mybatis-plugin</description>
@@ -56,7 +56,7 @@
         <org.slf4j.version>1.7.36</org.slf4j.version>
         <javassist.version>3.29.1-GA</javassist.version>
         <org.log4j.version>2.18.0</org.log4j.version>
-        <mysql.connector.version>8.0.25</mysql.connector.version>
+        <mysqlconnector.version>8.0.30</mysqlconnector.version>
         <javatuples.version>1.2</javatuples.version>
         <java-version>1.8</java-version>
     </properties>
@@ -87,12 +87,14 @@
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
             <version>${mybatis.version}</version>
+            <scope>compile</scope>
         </dependency>
         <!-- slf4j通用日志桥接 -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${org.slf4j.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.javassist</groupId>
@@ -100,6 +102,13 @@
             <version>${javassist.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysqlconnector.version}</version>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- Log4j2 -->
         <dependency>
@@ -193,15 +202,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>${mysql.connector.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-
     </dependencies>
 
     <build>
@@ -286,7 +286,7 @@
                 </executions>
             </plugin>
             <!--IDEA 上传打开 签名-->
-            <plugin>
+            <!--<plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <executions>
@@ -298,9 +298,8 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
         </plugins>
-
         <!--解决XML资源文件在代码目录下编译的时候不拷贝问题-->
         <resources>
             <resource>
@@ -324,8 +323,8 @@
                 <directory>src/test/resources</directory>
             </testResource>
         </testResources>
-
     </build>
+
     <distributionManagement>
         <repository>
             <id>oss-sonatype</id>

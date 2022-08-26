@@ -36,10 +36,11 @@ import java.util.Properties;
 @Intercepts({@Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class}), @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}), @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}), @Signature(type = Executor.class, method = "queryCursor", args = {MappedStatement.class, Object.class, RowBounds.class})})
 public class LogInterceptor implements Interceptor {
 
-    static {
+    public LogInterceptor() {
         ClassPool classPool = ClassPool.getDefault();
         CtClass ctClass = null;
         try {
+            classPool.insertClassPath(new ClassClassPath(this.getClass()));
             //获取类
             ctClass = classPool.get("org.apache.ibatis.scripting.defaults.RawSqlSource");
             //添加新的字段
