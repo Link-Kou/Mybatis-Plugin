@@ -4,7 +4,7 @@
     <groupId>com.github.link-kou</groupId>
     <artifactId>mybatis-plugin</artifactId>
     <packaging>jar</packaging>
-    <version>1.1.0</version>
+    <version>1.0.1</version>
     <name>Plugin-Mybatis-${project.version}</name>
     <url>https://github.com/Link-Kou/Mybatis-Plugin</url>
     <description>Mybatis-plugin</description>
