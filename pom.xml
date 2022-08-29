@@ -49,9 +49,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.9.0</junit.version>
         <druid.version>1.2.11</druid.version>
-        <springboot.version>2.7.2</springboot.version>
+        <springboot.version>2.7.3</springboot.version>
         <springjdbc.version>5.3.22</springjdbc.version>
         <mybatis.version>3.5.10</mybatis.version>
+        <gson.version>2.9.1</gson.version>
         <mybatis.spring.version>2.2.2</mybatis.spring.version>
         <org.slf4j.version>1.7.36</org.slf4j.version>
         <javassist.version>3.29.1-GA</javassist.version>
@@ -76,6 +77,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- gson -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.version}</version>
+        </dependency>
+
         <!--元组-->
         <dependency>
             <groupId>org.javatuples</groupId>
@@ -89,19 +97,30 @@
             <version>${mybatis.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!-- mybatis 数据库操作 -->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>${mybatis.spring.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.mybatis</groupId>
+                    <artifactId>mybatis</artifactId>
+                </exclusion>
+            </exclusions>
+            <scope>test</scope>
+        </dependency>
         <!-- slf4j通用日志桥接 -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${org.slf4j.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
             <version>${javassist.version}</version>
         </dependency>
-
         <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
         <dependency>
             <groupId>mysql</groupId>
@@ -109,7 +128,6 @@
             <version>${mysqlconnector.version}</version>
             <scope>compile</scope>
         </dependency>
-
         <!-- Log4j2 -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
@@ -136,7 +154,6 @@
             <version>${org.log4j.version}</version>
             <scope>test</scope>
         </dependency>
-
         <!--lombok-->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -144,7 +161,6 @@
             <version>1.18.24</version>
             <scope>provided</scope>
         </dependency>
-
         <!-- Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -186,12 +202,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
             <version>${springjdbc.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mybatis.spring.boot</groupId>
-            <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>${mybatis.spring.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- Druid -->
@@ -286,7 +296,7 @@
                 </executions>
             </plugin>
             <!--IDEA 上传打开 签名-->
-            <!--<plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <executions>
@@ -298,7 +308,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>-->
+            </plugin>
         </plugins>
         <!--解决XML资源文件在代码目录下编译的时候不拷贝问题-->
         <resources>

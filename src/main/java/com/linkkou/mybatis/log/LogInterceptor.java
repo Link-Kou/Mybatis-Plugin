@@ -1,5 +1,6 @@
 package com.linkkou.mybatis.log;
 
+import com.google.gson.Gson;
 import javassist.*;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
@@ -36,6 +37,20 @@ import java.util.Properties;
 @Intercepts({@Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class}), @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}), @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}), @Signature(type = Executor.class, method = "queryCursor", args = {MappedStatement.class, Object.class, RowBounds.class})})
 public class LogInterceptor implements Interceptor {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(LogInterceptor.class);
+
+    /**
+     * 对象名称
+     */
+    private static final String ROOTSQLNODE = "rootSqlNode";
+    private static final String ROOTSQLNODE2 = "_rootSqlNode_";
+    /**
+     * 参数数量
+     */
+    private static final Integer ARGSNUMBER = 2;
+
+    private static final Gson gson = GsonBuild.getGson();
+
     public LogInterceptor() {
         ClassPool classPool = ClassPool.getDefault();
         CtClass ctClass = null;
@@ -57,25 +72,9 @@ public class LogInterceptor implements Interceptor {
             ctClass.toClass(LogInterceptor.class.getClassLoader(), LogInterceptor.class.getProtectionDomain());
             ctClass.detach();
         } catch (Exception e) {
+            LOGGER.error("LogInterceptor:" + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(LogInterceptor.class);
-
-    /**
-     * 对象名称
-     */
-    private static final String ROOTSQLNODE = "rootSqlNode";
-    private static final String ROOTSQLNODE2 = "_rootSqlNode_";
-    /**
-     * 参数数量
-     */
-    private static final Integer ARGSNUMBER = 2;
-
-    private Pair<MappedStatement, Object> getArgs(Invocation invocation) {
-        final Object[] args = invocation.getArgs();
-        return Pair.with((MappedStatement) args[0], args[1]);
     }
 
     @Override
@@ -90,14 +89,20 @@ public class LogInterceptor implements Interceptor {
                 Configuration configuration = mappedStatement.getConfiguration();
                 // 通过配置信息和BoundSql对象来生成带值得sql语句
                 String sql = getCompleteSql(configuration, boundSql, originalSql);
-                // 打印sql语句
-                LOGGER.debug(" ==>  DaoStructure: " + mappedStatement.getId());
-                LOGGER.debug(" ==>  SQLStructure: " + sql);
+                final SqlVO sqlVO = new SqlVO().setId(mappedStatement.getId())
+                        .setCompleteSql(sql)
+                        .setOriginalSql(originalSql);
+                final String json = gson.toJson(sqlVO);
+                LOGGER.debug(" ==>  SQLStructure: " + json);
             }
         }
         return invocation.proceed();
     }
 
+    private Pair<MappedStatement, Object> getArgs(Invocation invocation) {
+        final Object[] args = invocation.getArgs();
+        return Pair.with((MappedStatement) args[0], args[1]);
+    }
 
     /**
      * 生成对应的带有值得sql语句
