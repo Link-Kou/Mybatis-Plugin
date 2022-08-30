@@ -20,4 +20,8 @@ public class SqlVO {
 
     private String completeSql;
 
+    private String parameter;
+
+    private Integer total;
+
 }

@@ -45,4 +45,9 @@ public class SimpleTest {
         orgJoinRolesMenusDao.queryForId("123123",objects);
     }
 
+    @Test
+    public void doTest4() {
+        orgJoinRolesMenusDao.queryById2(123123);
+    }
+
 }

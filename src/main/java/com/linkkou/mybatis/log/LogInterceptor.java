@@ -79,24 +79,36 @@ public class LogInterceptor implements Interceptor {
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
+        final Object proceed = invocation.proceed();
+        int size = 0;
+        if (proceed instanceof List) {
+            size = ((List<?>) proceed).size();
+        }
         if (invocation.getArgs().length >= ARGSNUMBER) {
             final Pair<MappedStatement, Object> args = getArgs(invocation);
             MappedStatement mappedStatement = args.getValue0();
             Object parameter = args.getValue1();
-            final String originalSql = this.getOriginalSql(mappedStatement, parameter);
-            if (originalSql != null) {
-                BoundSql boundSql = mappedStatement.getBoundSql(parameter);
-                Configuration configuration = mappedStatement.getConfiguration();
-                // 通过配置信息和BoundSql对象来生成带值得sql语句
-                String sql = getCompleteSql(configuration, boundSql, originalSql);
-                final SqlVO sqlVO = new SqlVO().setId(mappedStatement.getId())
-                        .setCompleteSql(sql)
-                        .setOriginalSql(originalSql);
-                final String json = gson.toJson(sqlVO);
-                LOGGER.debug(" ==>  SQLStructure: " + json);
+            try {
+                final String originalSql = this.getOriginalSql(mappedStatement, parameter);
+                if (originalSql != null) {
+                    BoundSql boundSql = mappedStatement.getBoundSql(parameter);
+                    Configuration configuration = mappedStatement.getConfiguration();
+                    // 通过配置信息和BoundSql对象来生成带值得sql语句
+                    String sql = getCompleteSql(configuration, boundSql, originalSql);
+                    final SqlVO sqlVO = new SqlVO().setId(mappedStatement.getId())
+                            .setCompleteSql(sql)
+                            .setParameter(gson.toJson(parameter))
+                            .setTotal(size)
+                            .setOriginalSql(originalSql);
+                    final String json = gson.toJson(sqlVO);
+                    LOGGER.debug(" ==>  SQLStructure: " + json);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
-        return invocation.proceed();
+
+        return proceed;
     }
 
     private Pair<MappedStatement, Object> getArgs(Invocation invocation) {

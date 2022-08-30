@@ -25,6 +25,8 @@ public interface OrgJoinRolesMenusDao {
      */
     OrgJoinRolesMenusDomain queryById(@Param("fId") Integer fRows);
 
+    OrgJoinRolesMenusDomain queryById2(@Param("fId") Integer fRows);
+
 
     OrgJoinRolesMenusDomain queryForId(@Param("sd") String sd, @Param("list") List<Integer> fRows);
 
